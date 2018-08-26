@@ -1,3 +1,33 @@
+### PROJECT ###
+logs/*
+datasets/*
+
+# Out of respect for the maintainers of various deck databases I will not
+# share my data acquisition code.
+acquisition/*
+
+
+### VIM ###
+# Swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Session
+Session.vim
+
+# Temporary
+.netrwhist
+*~
+# Auto-generated tag files
+tags
+# Persistent undo
+[._]*.un~
+
+
+### PYTHON ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
