@@ -7,3 +7,4 @@ Techniques implemented:
  - [ ] "card2vec"
  - [ ] deep embedding networks
  - [ ] deep autoencoders
+ - [ ] deep metric learning
