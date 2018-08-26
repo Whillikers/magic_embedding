@@ -1,6 +1,9 @@
 ### PROJECT ###
 logs/*
-datasets/*
+datasets/raw_decks/*
+*.pkl
+*.dta
+*.tfrecords
 
 # Out of respect for the maintainers of various deck databases I will not
 # share my data acquisition code.

@@ -8,3 +8,5 @@ Techniques implemented:
  - [ ] deep embedding networks
  - [ ] deep autoencoders
  - [ ] deep metric learning
+
+All utilities are designed to be run from the project root directory.
