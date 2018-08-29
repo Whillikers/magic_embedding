@@ -6,6 +6,8 @@ datasets/raw_decks/*
 *.tfrecords
 *.npz
 
+models/*/checkpoints/
+
 # Out of respect for the maintainers of various deck databases I will not
 # share my data acquisition code.
 acquisition/*
