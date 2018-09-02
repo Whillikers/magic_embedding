@@ -31,16 +31,24 @@ def train_val_split(matrix, val_frac=0.2):
     return train.tocsr(), test.tocsc(), list(set(masked_decks))
 
 
+def top_n_recs(model, train_matrix, deck_id, n=30):
+    train_matrix_lookup = train_matrix.T.tocsr()
+    all_cards = list(range(train_matrix.shape[0]))
+    recs_all = model.rank_items(deck_id, train_matrix_lookup,
+                                all_cards)
+    top = recs_all[:n]
+    return top
+
+
 def top_n_frac(model, train_matrix, val_matrix, deck_ids, n=30):
     '''
     Counts the average fraction of validation cards removed from a deck
     that are included in the model's top n recommendations for that deck.
     '''
-    train_matrix_lookup = train_matrix.transpose().tocsr()
     frac = 0
     for i, deck_id in enumerate(deck_ids):
         val_cards = set(np.where(val_matrix[:, deck_id].toarray())[0])
-        rec = model.recommend(deck_id, train_matrix_lookup, N=n)
+        rec = top_n_recs(model, train_matrix, deck_id, n)
         rec_cards = set(list(zip(*rec))[0])
         common = rec_cards.intersection(val_cards)
         frac += len(common) / len(val_cards)
