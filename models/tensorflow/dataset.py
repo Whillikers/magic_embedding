@@ -6,6 +6,13 @@ from functools import partial
 import tensorflow as tf
 
 
+# Top-level functions #
+def get_dataset_singleton(path='datasets/tfrecord_decks/deckbox_5000.tfrecord',
+                          do_sideboard=True, do_dup=True):
+    return make_dataset_singleton(get_dataset_decks(path, do_sideboard,
+                                                    do_dup))
+
+
 def get_dataset_decks(path='datasets/tfrecord_decks/deckbox_5000.tfrecord',
                       do_sideboard=True, do_dup=True):
     feature_set = {
@@ -52,7 +59,37 @@ def get_dataset_decks(path='datasets/tfrecord_decks/deckbox_5000.tfrecord',
     parse_example = partial(tf.parse_single_example, features=feature_set)
     card_merger = get_cards_both if do_sideboard else get_cards_mainboard
     dataset = tf.data.TFRecordDataset([path]) \
-        .shuffle(100000) \
         .map(parse_example) \
         .map(card_merger)
     return dataset.map(collapse_dup) if do_dup else dataset.map(collapse_unq)
+
+
+# Utility functions #
+def make_dataset_singleton(dataset):
+    '''
+    Given a dataset of (list of card ids, list of card counts), for each
+    example, create a list of examples with one card/count pair "pulled out."
+
+    Output dataset format: (
+        single card id,
+        single card count,
+        list of card ids,
+        list of card counts
+    )
+    '''
+    def make_examples_singleton(ids, counts):
+        n_cards = tf.size(ids)
+        card_idxs = tf.range(start=0, limit=n_cards)
+
+        def make_one_example(card_idx):
+            mask_rest = tf.not_equal(card_idxs, card_idx)
+            single_id = ids[card_idx]
+            single_count = counts[card_idx]
+            rest_ids = tf.boolean_mask(ids, mask_rest)
+            rest_counts = tf.boolean_mask(counts, mask_rest)
+            return single_id, single_count, rest_ids, rest_counts
+        outs = tf.map_fn(make_one_example, card_idxs, back_prop=False,
+                         dtype=(tf.int64, tf.int64, tf.int64, tf.int64))
+        return tf.data.Dataset.from_tensor_slices(outs)
+
+    return dataset.flat_map(make_examples_singleton)
