@@ -5,6 +5,8 @@ datasets/raw_decks/*
 *.dta
 *.tfrecord
 *.npz
+*.ipynb
+!.gitkeep
 
 models/*/checkpoints/
 
