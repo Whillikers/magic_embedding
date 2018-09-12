@@ -2,11 +2,11 @@ import sys
 import implicit
 from scipy.sparse import load_npz
 from hyperopt import fmin, tpe, hp, Trials, STATUS_OK
-from utils import validation
+from matrix_models import utils
 
 path_csr = 'datasets/matrix/card_deck_csr_5000.npz'
 matrix = load_npz(path_csr)
-train, val, deck_ids = validation.train_val_split(matrix)
+train, val, deck_ids = utils.train_val_split(matrix)
 
 run = 0
 
@@ -29,7 +29,7 @@ def objective(args):
                                                  regularization=regularization,
                                                  iterations=iterations)
     model.fit(train)
-    val_acc = validation.top_n_frac(model, train, val, deck_ids)
+    val_acc = utils.top_n_frac(model, train, val, deck_ids)
     print('Acc:', val_acc)
     sys.stdout.flush()
     return {'loss': -1 * val_acc, 'status': STATUS_OK}

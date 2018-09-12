@@ -1,5 +1,5 @@
 '''
-Utilities for evaluating performance on a test set.
+Utilities for Implicit matrix models.
 '''
 from random import sample
 import numpy as np
