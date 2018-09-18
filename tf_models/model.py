@@ -250,13 +250,16 @@ class TFModelABC(ABC):
                     self.logger.info('running training')
                     while True:
                         try:
-                            _, mean_train_loss, step, = self.sess.run(
-                                [train_op, mean_loss_update, self.global_step],
+                            _, mean_train_loss, step, summ = self.sess.run(
+                                [train_op, mean_loss_update,
+                                 self.global_step, summary_op],
                                 feed_dict={self.debug_feed: 1})
                         except tf.errors.OutOfRangeError:
                             break
                     self.logger.info('training loss: {}'.format(
                         mean_train_loss))
+
+                    self.train_writer.add_summary(train_summ, step)
 
                 # Save model periodically
                 if self.config['save_interval'] and \
