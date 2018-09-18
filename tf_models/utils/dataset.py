@@ -8,9 +8,12 @@ import tensorflow as tf
 
 # Top-level functions #
 def get_dataset_singleton(path='datasets/tfrecord_decks/deckbox_5000.tfrecord',
-                          do_sideboard=True, do_dup=True):
+                          do_sideboard=True, do_dup=True,
+                          batch_size=128, random_seed=1337):
     return make_dataset_singleton(get_dataset_decks(path, do_sideboard,
-                                                    do_dup))
+                                                    do_dup))\
+        .shuffle(100000, seed=random_seed)\
+        .padded_batch(batch_size, ([], [], [None], [None]))
 
 
 def get_dataset_decks(path='datasets/tfrecord_decks/deckbox_5000.tfrecord',

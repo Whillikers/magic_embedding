@@ -124,6 +124,10 @@ class TFModelABC(ABC):
                              .format(path))
 
     def train(self, dataset=None):
+        '''
+        Train a model, handling saving, metrics, gradient updates, etc.
+        Assumes dataset is shuffled and batched, if appropriate.
+        '''
         with self.graph.as_default():
             if not dataset:
                 self.logger.warning('no dataset found; using default')
@@ -133,16 +137,9 @@ class TFModelABC(ABC):
             n_val = int(self.config['val_frac'] * self.config['n_decks'])
 
             with tf.name_scope('data'):
-                dataset_shuffled = dataset.shuffle(
-                    100000, seed=self.config['random_seed'])
-
-                # TODO: handle batching
-                #  dataset_shuffled = dataset.shuffle(100000, seed=1337)\
-                #      .batch(self.config['batch_size'])
-
-                dataset_train = dataset_shuffled.skip(n_val)\
+                dataset_train = dataset.skip(n_val)\
                     .take(self.config['n_decks'] - n_val).cache()
-                dataset_val = dataset_shuffled.take(n_val).cache()
+                dataset_val = dataset.take(n_val).cache()
 
                 self.logger.info('{} training decks, {} validation decks'
                                  .format(self.config['n_decks'] - n_val,
@@ -306,5 +303,8 @@ class TFModelABC(ABC):
         '''
         path = 'datasets/tfrecord_decks/deckbox_{}.tfrecord'.format(
             self.config['n_cards'])
-        return get_dataset_singleton(path, self.config['do_sideboard'],
-                                     self.config['do_dup'])
+        return get_dataset_singleton(path,
+                                     self.config['do_sideboard'],
+                                     self.config['do_dup'],
+                                     self.config['batch_size'],
+                                     self.config['random_seed'])
