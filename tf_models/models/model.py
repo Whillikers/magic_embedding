@@ -20,10 +20,10 @@ class TFModelABC(ABC):
     ABC for Tensorflow thesaurus models.
     '''
     global_args = [
-        'model_name', 'save_dir',                        # model
-        'n_decks', 'n_cards', 'do_sideboard', 'do_dup',  # data
-        'batch_size', 'val_frac', 'lr', 'max_epochs',    # training
-        'summary_interval', 'save_interval',             # misc
+        'model_name', 'save_dir',                               # model
+        'n_decks', 'n_cards', 'do_sideboard', 'do_dup',         # data
+        'batch_size', 'val_frac', 'lr', 'max_epochs',           # training
+        'summary_interval', 'save_interval', 'print_cards',     # misc
         'log_level', 'random_seed'
     ]
 
@@ -231,6 +231,17 @@ class TFModelABC(ABC):
                     self.val_writer.add_run_metadata(run_metadata,
                                                      'step_{}'.format(step))
                     self.val_writer.add_summary(val_summ, step)
+
+                    # Periodically print some card associations
+                    self.logger.debug('printing similar cards')
+                    for card_name in self.config['print_cards']:
+                        id_ = self.name_to_id[card_name]
+                        closest_5_ids = self.k_nearest_cards(id_, 5)
+                        closest_5_names = list(
+                            map(lambda i: self.id_to_name[i], closest_5_ids))
+                        self.logger.info('closest to {}:'.format(card_name))
+                        self.logger.info(closest_5_names)
+
                 else:  # Normal training step
                     self.logger.debug('initializing local variables for train')
                     self.sess.run(tf.local_variables_initializer())
@@ -251,8 +262,6 @@ class TFModelABC(ABC):
                 if self.config['save_interval'] and \
                         (epoch % self.config['save_interval'] == 0):
                     self.save(step)
-
-    # TODO: periodically print k-nearest
 
     # Required subclass methods #
     @abstractmethod

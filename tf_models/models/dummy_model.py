@@ -21,6 +21,8 @@ class DummyModel(TFModelABC):
             'max_epochs': 10,
             'summary_interval': 2,
             'save_interval': 2,
+            'print_cards': ['Brainstorm', 'Lightning Bolt', 'Doom Blade',
+                            'Forest', 'Goblin Guide'],
             'log_level': 20,
             'random_seed': 1337
         }
