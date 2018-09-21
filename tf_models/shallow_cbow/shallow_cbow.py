@@ -68,14 +68,18 @@ class ShallowCBOW(TFModelABC):
             context_embeddings = tf.nn.embedding_lookup(
                 self.embeddings, context_ids, name='context_embeddings')
 
+            # TODO: change this to working at graph construction time
             # Create either weights or filters for non-present cards
             # Shape: [batch_size, n_context_cards]
-            def dup_weights(): return tf.cast(context_counts, tf.float32)  # NOQA
-            def no_dup_weights(): return tf.cast(tf.greater(context_counts, 0),  # NOQA
+            #  def dup_weights(): return tf.cast(context_counts, tf.float32)  # NOQA
+            #  def no_dup_weights(): return tf.cast(tf.greater(context_counts, 0),  # NOQA
+            #                                       tf.float32)
+            #  context_weights = tf.cond(tf.cast(self.config['do_dup'], tf.bool),
+            #                            dup_weights, no_dup_weights,
+            #                            name='context_weights')
+
+            context_weights = tf.cast(tf.greater(context_counts, 0),
                                                  tf.float32)
-            context_weights = tf.cond(tf.cast(self.config['do_dup'], tf.bool),
-                                      dup_weights, no_dup_weights,
-                                      name='context_weights')
 
             weights_tiled = tf.tile(tf.expand_dims(context_weights, axis=2),
                                     (1, 1, self.config['embedding_size']))
@@ -84,8 +88,16 @@ class ShallowCBOW(TFModelABC):
 
             # Average embeddings across the context
             # Shape: [batch_size, embedding_size]
-            mean_context_embedding = tf.reduce_mean(
+            sum_context_embedding = tf.reduce_sum(
                 context_embeddings_weighted, axis=1,
+                name='sum_context_embedding')
+
+            tot_weights = tf.reduce_mean(weights_tiled, axis=1,
+                                         name='tot_weights')
+
+            mean_context_embedding = tf.divide(
+                sum_context_embedding,
+                tot_weights,
                 name='mean_context_embedding')
 
         with tf.name_scope('compute_loss'):

@@ -12,6 +12,7 @@ import logging
 from copy import deepcopy
 from abc import ABC, abstractmethod
 import tensorflow as tf
+from tensorflow.python import debug as tf_debug
 from tf_models.utils.dataset import get_dataset_singleton
 
 
@@ -24,7 +25,7 @@ class TFModelABC(ABC):
         'n_decks', 'n_cards', 'do_sideboard', 'do_dup',         # data
         'batch_size', 'val_frac', 'lr', 'max_epochs',           # training
         'summary_interval', 'save_interval', 'print_cards',     # misc
-        'log_level', 'random_seed'
+        'random_seed', 'debug_mode'
     ]
 
     def __init__(self, config, model_args=[]):
@@ -53,7 +54,7 @@ class TFModelABC(ABC):
             '%(asctime)s - %(levelname)s: %(message)s')
         log_fh = logging.FileHandler(os.path.join(config['save_dir'],
                                                   'logs.log'))
-        log_fh.setLevel(config['log_level'])
+        log_fh.setLevel(logging.INFO)
         log_fh.setFormatter(formatter)
         debug_fh = logging.FileHandler(os.path.join(config['save_dir'],
                                                     'debug.log'))
@@ -61,7 +62,8 @@ class TFModelABC(ABC):
         debug_fh.setFormatter(formatter)
         print_fh = logging.StreamHandler()
         print_fh.setFormatter(formatter)
-        print_fh.setLevel(config['log_level'])
+        print_fh.setLevel(logging.DEBUG if self.config['debug_mode'] else
+                          logging.INFO)
         self.logger.addHandler(debug_fh)
         self.logger.addHandler(log_fh)
         self.logger.addHandler(print_fh)
@@ -84,6 +86,9 @@ class TFModelABC(ABC):
 
         with self.graph.as_default():
             self.sess = tf.Session(graph=self.graph, config=session_config)
+
+            if self.config['debug_mode']:
+                self.sess = tf_debug.LocalCLIDebugWrapperSession(self.sess)
 
             self.logger.debug('building base ops')
             self.global_step = tf.Variable(0, name='global_step',
