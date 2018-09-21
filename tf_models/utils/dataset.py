@@ -95,4 +95,7 @@ def make_dataset_singleton(dataset):
                          dtype=(tf.int64, tf.int64, tf.int64, tf.int64))
         return tf.data.Dataset.from_tensor_slices(outs)
 
-    return dataset.flat_map(make_examples_singleton)
+    def is_example_valid(single_id, single_count, rest_ids, rest_counts):
+        return tf.reduce_any(rest_counts > 0)
+
+    return dataset.flat_map(make_examples_singleton).filter(is_example_valid)
