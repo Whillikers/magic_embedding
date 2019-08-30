@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tf_models.models.model import TFModelABC
+from tf_models.model import TFModelABC
 
 
 class DummyModel(TFModelABC):

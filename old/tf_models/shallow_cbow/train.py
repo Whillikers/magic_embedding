@@ -9,8 +9,8 @@ config = {
     'n_negative_samples': 256,  # TODO: tune
     'model_name': 'shallow_cbow',
     'save_dir': 'logs/shallow_cbow/',
-    'n_decks': 580400,
-    #  'n_decks': 1000,
+    #  'n_decks': 580400,
+    'n_decks': 100,
     'n_cards': 1000,
     'do_sideboard': False,
     'do_dup': False,

@@ -45,9 +45,14 @@ class ShallowCBOW(TFModelABC):
                 input_embedding = tf.nn.embedding_lookup(
                     self.embeddings, self.input_id, name='input_embedding')
 
+                norm_factor = tf.reduce_sum(self.embeddings, axis=1,
+                                            keepdims=True, name='norm_factor')
+                normalized_embeddings = self.embeddings / norm_factor
+
                 # Cosine similarities of input embeddings and all embeddings
                 # Shape: [n_cards + 1]
-                similarities = tf.matmul(input_embedding, self.embeddings,
+                similarities = tf.matmul(input_embedding,
+                                         normalized_embeddings,
                                          transpose_b=True, name='similarities')
                 self.neighbor_similarities, self.neighbor_ids = \
                     tf.nn.top_k(similarities, self.k, name='similar_ids')
@@ -68,18 +73,11 @@ class ShallowCBOW(TFModelABC):
             context_embeddings = tf.nn.embedding_lookup(
                 self.embeddings, context_ids, name='context_embeddings')
 
-            # TODO: change this to working at graph construction time
-            # Create either weights or filters for non-present cards
-            # Shape: [batch_size, n_context_cards]
-            #  def dup_weights(): return tf.cast(context_counts, tf.float32)  # NOQA
-            #  def no_dup_weights(): return tf.cast(tf.greater(context_counts, 0),  # NOQA
-            #                                       tf.float32)
-            #  context_weights = tf.cond(tf.cast(self.config['do_dup'], tf.bool),
-            #                            dup_weights, no_dup_weights,
-            #                            name='context_weights')
-
-            context_weights = tf.cast(tf.greater(context_counts, 0),
-                                                 tf.float32)
+            if self.config['do_dup']:
+                context_weights = tf.cast(context_counts, tf.float32)
+            else:
+                context_weights = tf.cast(tf.greater(context_counts, 0),
+                                          tf.float32)
 
             weights_tiled = tf.tile(tf.expand_dims(context_weights, axis=2),
                                     (1, 1, self.config['embedding_size']))
