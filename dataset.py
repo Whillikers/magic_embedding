@@ -52,11 +52,7 @@ def get_all_pairs_dataset(path, batch_size, use_sideboard=False):
     )
 
 
-def get_dataset_decks(
-    path="datasets/tfrecord_decks/deckbox_5000.tfrecord",
-    use_sideboard=True,
-    do_dup=True,
-):
+def get_dataset_decks(path, use_sideboard=True, do_dup=True):
     feature_set = {
         "mainboard_ids": tf.io.VarLenFeature(tf.int64),
         "mainboard_counts": tf.io.VarLenFeature(tf.int64),
